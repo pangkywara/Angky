@@ -155,7 +155,6 @@ Klik "Rekam" → Bicara → Klik "Berhenti" → Otomatis tersimpan
 
 **Navigasi kalimat:**
 - Gunakan tombol **Sebelumnya** / **Berikutnya** di bagian bawah
-- Gunakan tombol **Lewati** untuk melewati kalimat
 - Gunakan input **"Lompat ke ID..."** untuk langsung ke kalimat tertentu (ketik nomor ID, tekan Enter)
 
 ### 5. Rekam dari HP (QR Code)
