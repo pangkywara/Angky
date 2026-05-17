@@ -1,4 +1,25 @@
-# 🎙️ Angky — Studio Rekaman Suara
+<p align="center">
+  <img src="./public/angky/android-chrome-192x192.png" alt="Angky Logo" width="120" />
+</p>
+
+<h1 align="center">Angky Studio Rekaman Suara</h1>
+
+<p align="center">
+  <strong>Aplikasi Web Lokal untuk Merekam Dataset Suara Berpasangan Secara Cepat & Mudah</strong>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Next.js-16.x-black?style=flat-square&logo=next.js" />
+  <img src="https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react" />
+  <img src="https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat-square&logo=typescript" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=flat-square&logo=tailwind-css" />
+  <img src="https://img.shields.io/badge/Node.js-18+-339933?style=flat-square&logo=node.js" />
+</p>
+
+---
+
+
+# 🎙️ Angky Studio Rekaman Suara
 
 Angky adalah aplikasi web lokal untuk merekam dataset suara berpasangan (Bahasa Indonesia ↔ Bahasa Sumber). Hasil rekaman berupa file WAV mono 22050 Hz 16-bit yang siap digunakan untuk pelatihan model TTS seperti Piper.
 
