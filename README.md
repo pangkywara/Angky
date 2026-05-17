@@ -28,7 +28,7 @@ Angky adalah aplikasi web lokal untuk merekam dataset suara berpasangan (Bahasa 
 | Komponen      | Versi Minimum |
 |---------------|---------------|
 | **Node.js**   | 18+           |
-| **Bun**       | 1.x (atau gunakan `npm`) |
+| **npm**       | 9+ (bawaan Node.js) |
 | **Browser**   | Chrome / Edge / Firefox terbaru |
 | **Mikrofon**  | Mikrofon bawaan laptop atau headset |
 
@@ -41,10 +41,10 @@ Angky adalah aplikasi web lokal untuk merekam dataset suara berpasangan (Bahasa 
 cd Angky
 
 # 2. Install dependensi
-bun install / npm install / pnpm install
+npm install
 ```
 
-> **Catatan:** Bisa juga menggunakan `npm install` atau `pnpm install` jika tidak menggunakan Bun.
+> **Catatan:** Bisa juga menggunakan `bun install` atau `pnpm install` sebagai alternatif.
 
 ---
 
@@ -53,7 +53,7 @@ bun install / npm install / pnpm install
 ### Mode Standar (hanya di laptop)
 
 ```bash
-bun dev / npm run dev / pnpm run dev
+npm run dev
 ```
 
 Aplikasi akan berjalan di `http://localhost:3000`.
@@ -61,7 +61,7 @@ Aplikasi akan berjalan di `http://localhost:3000`.
 ### Mode Jaringan + HTTPS (untuk akses dari HP)
 
 ```bash
-bun dev / npm run dev / pnpm run dev
+npm run dev
 ```
 
 > Script `dev` sudah dikonfigurasi dengan `--hostname 0.0.0.0 --experimental-https`, sehingga:
@@ -241,7 +241,7 @@ Klik tombol **bulan/matahari** di pojok kanan atas header untuk beralih antara m
 
 ### QR Code tidak muncul
 - Komponen QR hanya tampil di desktop (layar >= 768px)
-- Pastikan `bun dev` berjalan dengan `--hostname 0.0.0.0`
+- Pastikan `npm run dev` berjalan dengan `--hostname 0.0.0.0`
 - Cek apakah `/api/network-info` mengembalikan IP yang benar
 
 ### Halaman HP tidak bisa dibuka
@@ -251,12 +251,21 @@ Klik tombol **bulan/matahari** di pojok kanan atas header untuk beralih antara m
 
 ### Port 3000 sudah dipakai
 - Next.js akan otomatis pindah ke port lain (3001, 3002, dst.)
-- Port yang digunakan terlihat di terminal saat menjalankan `bun dev`
+- Port yang digunakan terlihat di terminal saat menjalankan `npm run dev`
 
 ### Audio terdengar rusak / noise
 - Gunakan headset atau mikrofon eksternal untuk kualitas lebih baik
 - Rekam di ruangan yang tenang
 - Hindari jarak terlalu jauh dari mikrofon
+
+### Sertifikat HTTPS gagal dibuat (mkcert error)
+- Jika muncul error `Failed to generate self-signed certificate`, jalankan perintah berikut **satu kali** di terminal **Administrator**:
+  ```powershell
+  $env:TRUST_STORES="system"
+  & "$env:LOCALAPPDATA\mkcert\mkcert-v1.4.4-windows-amd64.exe" -install
+  ```
+- Jika ada error `keytool` terkait Android Studio / Java, itu karena mkcert mencoba menambah CA ke Java keystore. Set `TRUST_STORES=system` untuk melewati Java keystore.
+- Setelah berhasil, hapus folder `certificates/` lalu jalankan ulang `npm run dev` — sertifikat akan dibuat otomatis.
 
 ---
 

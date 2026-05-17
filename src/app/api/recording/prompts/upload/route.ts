@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
       parsed = parseCSV(text);
     } else {
       const buffer = await file.arrayBuffer();
-      parsed = parseExcel(buffer);
+      parsed = await parseExcel(buffer);
     }
   } catch (e: unknown) {
     return NextResponse.json({ error: e instanceof Error ? e.message : String(e) }, { status: 400 });
