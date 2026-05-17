@@ -336,12 +336,11 @@ keytool error: java.io.FileNotFoundException: ...\Android Studio\jbr\lib\securit
 ### Arsitektur
 - **Framework:** Next.js 16 dengan App Router
 - **Runtime:** Node.js (API routes menggunakan `fs` untuk baca/tulis file)
-- **Audio:** `AudioContext` + `ScriptProcessorNode` lalu WAV encoding di sisi klien
+- **Audio:** `AudioContext` + `AudioWorkletNode` (off-main-thread) lalu WAV encoding di sisi klien
 - **Styling:** Tailwind CSS v4
 - **Ikon:** Tabler Icons React
 
 ### Peringatan
-- `ScriptProcessorNode` adalah API deprecated dari Web Audio. Masih berfungsi di semua browser modern, tapi di masa depan mungkin perlu diganti dengan `AudioWorkletNode`.
 - Aplikasi ini dirancang untuk **penggunaan lokal** (satu pengguna pada satu waktu). Tidak ada autentikasi atau proteksi akses.
 - Data rekaman disimpan langsung di filesystem lokal — **tidak ada backup otomatis**. Pastikan untuk mem-backup folder `output/` secara berkala.
 

@@ -21,7 +21,7 @@ export function useRecorder(): UseRecorderReturn {
   const [error, setError] = useState<string | null>(null);
 
   const ctxRef = useRef<AudioContext | null>(null);
-  const processorRef = useRef<ScriptProcessorNode | null>(null);
+  const workletRef = useRef<AudioWorkletNode | null>(null);
   const sourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Float32Array[]>([]);
@@ -33,13 +33,13 @@ export function useRecorder(): UseRecorderReturn {
       window.clearInterval(tickRef.current);
       tickRef.current = null;
     }
-    try { processorRef.current?.disconnect(); } catch {}
+    try { workletRef.current?.disconnect(); } catch {}
     try { sourceNodeRef.current?.disconnect(); } catch {}
     streamRef.current?.getTracks().forEach((t) => t.stop());
     if (ctxRef.current && ctxRef.current.state !== "closed") {
       ctxRef.current.close().catch(() => {});
     }
-    processorRef.current = null;
+    workletRef.current = null;
     sourceNodeRef.current = null;
     streamRef.current = null;
     ctxRef.current = null;
@@ -60,19 +60,27 @@ export function useRecorder(): UseRecorderReturn {
       const ctx = new AudioContext();
       ctxRef.current = ctx;
 
+      // Load the AudioWorklet module (served from /public)
+      await ctx.audioWorklet.addModule("/recorder-worklet.js");
+
       const source = ctx.createMediaStreamSource(stream);
       sourceNodeRef.current = source;
 
-      const processor = ctx.createScriptProcessor(4096, 1, 1);
-      processorRef.current = processor;
+      const worklet = new AudioWorkletNode(ctx, "recorder-worklet", {
+        channelCount: 1,
+        channelCountMode: "explicit",
+      });
+      workletRef.current = worklet;
 
-      processor.onaudioprocess = (e) => {
-        const data = e.inputBuffer.getChannelData(0);
-        chunksRef.current.push(new Float32Array(data));
+      // Receive PCM chunks from the worklet thread
+      worklet.port.onmessage = (e: MessageEvent<Float32Array>) => {
+        chunksRef.current.push(e.data);
       };
 
-      source.connect(processor);
-      processor.connect(ctx.destination);
+      source.connect(worklet);
+      // AudioWorkletNode does NOT need to connect to destination
+      // (unlike ScriptProcessorNode which required it to keep running).
+      // This avoids feedback / echo from playing captured audio back.
 
       startTimeRef.current = Date.now();
       setState("recording");
@@ -94,6 +102,9 @@ export function useRecorder(): UseRecorderReturn {
     const finalDuration = (Date.now() - startTimeRef.current) / 1000;
     setDurationSec(finalDuration);
     setState("encoding");
+
+    // Tell the worklet to stop processing
+    workletRef.current?.port.postMessage("stop");
 
     const sourceRate = ctxRef.current.sampleRate;
     cleanup();
