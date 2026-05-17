@@ -1,23 +1,13 @@
 import type { Prompt } from "./csv";
-import ExcelJS from "exceljs";
+import { readSheet } from "read-excel-file/node";
 
 export async function parseExcel(buffer: ArrayBuffer): Promise<Prompt[]> {
-  const workbook = new ExcelJS.Workbook();
-  // ExcelJS accepts ArrayBuffer at runtime but types only declare Buffer
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await workbook.xlsx.load(buffer as any);
+  const rows = await readSheet(Buffer.from(buffer));
 
-  const sheet = workbook.worksheets[0];
-  if (!sheet) throw new Error("File Excel kosong (tidak ada sheet)");
-
-  const dataRows: [string, string][] = [];
-  sheet.eachRow((row) => {
-    const col1 = (row.getCell(1).text ?? "").trim();
-    const col2 = (row.getCell(2).text ?? "").trim();
-    if (col1 || col2) {
-      dataRows.push([col1, col2]);
-    }
-  });
+  // Filter out empty rows
+  const dataRows = rows.filter(
+    (row) => row.length >= 2 && ((row[0]?.toString() ?? "").trim() || (row[1]?.toString() ?? "").trim()),
+  );
 
   if (dataRows.length === 0) {
     throw new Error("File Excel tidak memiliki data. Pastikan kolom A = Bahasa Indonesia, kolom B = Bahasa Sumber.");
@@ -27,7 +17,7 @@ export async function parseExcel(buffer: ArrayBuffer): Promise<Prompt[]> {
 
   return dataRows.map((row, i) => ({
     id: String(i + 1).padStart(width, "0"),
-    indonesian: row[0],
-    source: row[1],
+    indonesian: (row[0]?.toString() ?? "").trim(),
+    source: (row[1]?.toString() ?? "").trim(),
   }));
 }

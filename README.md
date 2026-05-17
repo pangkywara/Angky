@@ -259,13 +259,54 @@ Klik tombol **bulan/matahari** di pojok kanan atas header untuk beralih antara m
 - Hindari jarak terlalu jauh dari mikrofon
 
 ### Sertifikat HTTPS gagal dibuat (mkcert error)
-- Jika muncul error `Failed to generate self-signed certificate`, jalankan perintah berikut **satu kali** di terminal **Administrator**:
-  ```powershell
-  $env:TRUST_STORES="system"
-  & "$env:LOCALAPPDATA\mkcert\mkcert-v1.4.4-windows-amd64.exe" -install
-  ```
-- Jika ada error `keytool` terkait Android Studio / Java, itu karena mkcert mencoba menambah CA ke Java keystore. Set `TRUST_STORES=system` untuk melewati Java keystore.
-- Setelah berhasil, hapus folder `certificates/` lalu jalankan ulang `npm run dev` — sertifikat akan dibuat otomatis.
+
+**Gejala:** Saat menjalankan `npm run dev`, muncul error seperti berikut:
+
+```
+⨯ Failed to generate self-signed certificate. Falling back to http.
+Error: Command failed: "...\mkcert-v1.4.4-windows-amd64.exe" -install -key-file "...\localhost-key.pem" ...
+```
+
+Atau saat menjalankan `mkcert -install` manual muncul error:
+
+```
+ERROR: failed to execute "keytool -importcert": exit status 1
+keytool error: java.io.FileNotFoundException: ...\Android Studio\jbr\lib\security\cacerts (Access is denied)
+```
+
+**Penyebab:** `mkcert` otomatis mendeteksi **Android Studio / Java** yang terinstal di sistem dan mencoba menambahkan CA certificate ke Java keystore. Namun file keystore tersebut membutuhkan akses Administrator, sehingga `mkcert` gagal (exit code 1) dan Next.js menganggap seluruh proses gagal.
+
+**Cara memperbaiki (satu kali, permanen):**
+
+1. Buka **PowerShell** (tidak perlu Administrator)
+
+2. Jalankan perintah berikut untuk menyetel environment variable secara permanen:
+   ```powershell
+   [System.Environment]::SetEnvironmentVariable('TRUST_STORES', 'system', 'User')
+   ```
+   > Perintah ini memberitahu `mkcert` agar hanya menggunakan trust store sistem Windows dan melewati Java keystore.
+
+3. **Tutup semua terminal**, lalu buka terminal baru agar environment variable aktif
+
+4. Jika ada folder `certificates/` di root project, hapus terlebih dahulu:
+   ```powershell
+   Remove-Item -Recurse -Force certificates
+   ```
+
+5. Jalankan ulang aplikasi:
+   ```powershell
+   npm run dev
+   ```
+
+6. Pastikan output menunjukkan **HTTPS** berhasil:
+   ```
+   ✓ Certificates created in ...\certificates
+   ▲ Next.js 16.x.x (Turbopack)
+   - Local:         https://localhost:3000
+   - Network:       https://0.0.0.0:3000
+   ```
+
+> **Catatan:** Fix ini bersifat permanen — tetap berlaku meskipun Anda menghapus repo, clone ulang, atau menjalankan `npm install` kembali.
 
 ---
 
