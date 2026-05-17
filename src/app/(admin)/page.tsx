@@ -57,8 +57,9 @@ export default function HomePage() {
   }, [refresh]);
 
   const uploadFile = useCallback(async (file: File) => {
-    if (!file.name.toLowerCase().endsWith(".csv")) {
-      setError("File harus berformat .csv");
+    const name = file.name.toLowerCase();
+    if (!name.endsWith(".csv") && !name.endsWith(".xlsx") && !name.endsWith(".xls")) {
+      setError("File harus berformat .csv, .xlsx, atau .xls");
       return;
     }
     setUploading(true);
@@ -144,7 +145,7 @@ export default function HomePage() {
 
       <ComponentCard
         title="Muat Kalimat"
-        desc="Unggah CSV bertanda titik koma (Bahasa Indonesia;Bahasa sumber)"
+        desc="Unggah CSV atau Excel — kolom A: Bahasa Indonesia, kolom B: Bahasa Sumber"
       >
         <div
           onDrop={onDrop}
@@ -166,11 +167,11 @@ export default function HomePage() {
               </>
             )}
           </p>
-          <p className="text-xs text-gray-400">Hanya file .csv</p>
+          <p className="text-xs text-gray-400">File .csv, .xlsx, atau .xls</p>
           <input
             ref={fileInputRef}
             type="file"
-            accept=".csv,text/csv"
+            accept=".csv,text/csv,.xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
             className="hidden"
             onChange={onPick}
           />

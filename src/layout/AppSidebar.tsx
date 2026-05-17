@@ -68,6 +68,9 @@ const AppSidebar: React.FC = () => {
     const entries = data ? data[lang] : [];
     const total = data?.total ?? 0;
     const isOpen = openLang === lang;
+    const MAX_VISIBLE = 20;
+    const visibleEntries = entries.slice(0, MAX_VISIBLE);
+    const remaining = entries.length - MAX_VISIBLE;
 
     return (
       <li>
@@ -105,21 +108,28 @@ const AppSidebar: React.FC = () => {
               {entries.length === 0 ? (
                 <li className="text-xs text-gray-400 px-3 py-2">Belum ada rekaman</li>
               ) : (
-                entries.map((e) => (
-                  <li key={e.id}>
-                    <Link
-                      href={`/session?id=${e.id}`}
-                      className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition"
-                      title={e.text}
-                    >
-                      <IconCheck className="w-3.5 h-3.5 text-green-500 shrink-0" stroke={2.6} />
-                      <span className="font-mono shrink-0">{e.id}</span>
-                      <span className="truncate text-gray-500 dark:text-gray-500">
-                        {e.text}
-                      </span>
-                    </Link>
-                  </li>
-                ))
+                <>
+                  {visibleEntries.map((e) => (
+                    <li key={e.id}>
+                      <Link
+                        href={`/session?id=${e.id}`}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition"
+                        title={e.text}
+                      >
+                        <IconCheck className="w-3.5 h-3.5 text-green-500 shrink-0" stroke={2.6} />
+                        <span className="font-mono shrink-0">{e.id}</span>
+                        <span className="truncate text-gray-500 dark:text-gray-500">
+                          {e.text}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                  {remaining > 0 && (
+                    <li className="px-3 py-1.5 text-xs text-gray-400 dark:text-gray-500">
+                      +{remaining} rekaman lainnya
+                    </li>
+                  )}
+                </>
               )}
             </ul>
           </div>

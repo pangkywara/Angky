@@ -26,6 +26,31 @@ export function parseCSV(text: string): Prompt[] {
   });
 }
 
+export function parseExcel(buffer: ArrayBuffer): Prompt[] {
+  // Dynamic import avoided — xlsx is imported at module level in the API route
+  // This function is called from the server-side upload route only
+  const XLSX = require("xlsx");
+  const workbook = XLSX.read(buffer, { type: "array" });
+  const sheetName = workbook.SheetNames[0];
+  if (!sheetName) throw new Error("File Excel kosong (tidak ada sheet)");
+
+  const sheet = workbook.Sheets[sheetName];
+  const rows: string[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
+
+  // Filter out empty rows
+  const dataRows = rows.filter((row) => row.length >= 2 && (row[0]?.toString().trim() || row[1]?.toString().trim()));
+
+  if (dataRows.length === 0) throw new Error("File Excel tidak memiliki data. Pastikan kolom A = Bahasa Indonesia, kolom B = Bahasa Sumber.");
+
+  const width = String(dataRows.length).length;
+
+  return dataRows.map((row, i) => ({
+    id: String(i + 1).padStart(width, "0"),
+    indonesian: (row[0]?.toString() ?? "").trim(),
+    source: (row[1]?.toString() ?? "").trim(),
+  }));
+}
+
 export function shufflePrompts(prompts: Prompt[]): Prompt[] {
   const shuffled = [...prompts];
   for (let i = shuffled.length - 1; i > 0; i -= 1) {

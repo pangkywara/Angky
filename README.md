@@ -10,8 +10,8 @@ Angky adalah aplikasi web lokal untuk merekam dataset suara berpasangan (Bahasa 
 - [Instalasi](#-instalasi)
 - [Menjalankan Aplikasi](#-menjalankan-aplikasi)
 - [Cara Menggunakan](#-cara-menggunakan)
-  - [1. Menyiapkan File CSV](#1-menyiapkan-file-csv)
-  - [2. Mengunggah CSV](#2-mengunggah-csv)
+  - [1. Menyiapkan File CSV atau Excel](#1-menyiapkan-file-csv-atau-excel)
+  - [2. Mengunggah File](#2-mengunggah-file)
   - [3. Mengatur Batas Rekaman](#3-mengatur-batas-rekaman-opsional)
   - [4. Mulai Merekam](#4-mulai-merekam)
   - [5. Rekam dari HP (QR Code)](#5-rekam-dari-hp-qr-code)
@@ -74,7 +74,11 @@ bun dev / npm run dev / pnpm run dev
 
 ## 📖 Cara Menggunakan
 
-### 1. Menyiapkan File CSV
+### 1. Menyiapkan File CSV atau Excel
+
+Anda bisa menggunakan **file CSV** atau **file Excel (.xlsx / .xls)**.
+
+#### Opsi A: File CSV
 
 Buat file `.csv` berisi pasangan kalimat dengan format:
 
@@ -90,19 +94,36 @@ Terima kasih banyak.;Do sia lu.
 Saya mau makan nasi.;Gua beh ciah bng.
 ```
 
-**Aturan penting:**
+**Aturan CSV:**
 - Gunakan **titik koma (`;`)** sebagai pemisah, **bukan koma**
 - **Tidak perlu** baris header
 - Setiap baris = satu pasangan kalimat
 - Encoding file: **UTF-8** (mendukung BOM)
 
-### 2. Mengunggah CSV
+#### Opsi B: File Excel (.xlsx / .xls)
+
+Buat spreadsheet dengan dua kolom:
+
+| Kolom A (Bahasa Indonesia) | Kolom B (Bahasa Sumber) |
+|---|---|
+| Selamat pagi, apa kabar? | Za be, lu ho bo? |
+| Terima kasih banyak. | Do sia lu. |
+| Saya mau makan nasi. | Gua beh ciah bng. |
+
+**Aturan Excel:**
+- **Kolom A** = Bahasa Indonesia
+- **Kolom B** = Bahasa Sumber
+- Tidak perlu header (langsung isi data dari baris 1)
+- Hanya sheet pertama yang dibaca
+- Baris kosong akan diabaikan
+
+### 2. Mengunggah File
 
 1. Buka halaman utama (`/`)
-2. Di bagian **"Muat Kalimat"**, klik area unggah atau tarik-lepas file CSV
+2. Di bagian **"Muat Kalimat"**, klik area unggah atau tarik-lepas file (CSV/Excel)
 3. Jumlah kalimat yang dimuat akan ditampilkan
 
-> **Peringatan:** Mengunggah CSV baru akan **menimpa** kalimat sebelumnya. Rekaman yang sudah tersimpan **tidak terhapus**.
+> **Peringatan:** Mengunggah file baru akan **menimpa** kalimat sebelumnya. Rekaman yang sudah tersimpan **tidak terhapus**.
 
 ### 3. Mengatur Batas Rekaman (Opsional)
 
