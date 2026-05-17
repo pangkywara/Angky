@@ -53,7 +53,10 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    refresh().catch(() => { });
+    const timeout = window.setTimeout(() => {
+      refresh().catch(() => { });
+    }, 0);
+    return () => window.clearTimeout(timeout);
   }, [refresh]);
 
   const uploadFile = useCallback(async (file: File) => {

@@ -17,6 +17,12 @@ interface Prompt {
 
 type Lang = "indonesian" | "source";
 
+async function fetchPrompts(signal?: AbortSignal): Promise<Prompt[]> {
+  const res = await fetch("/api/recording/prompts", { signal });
+  if (!res.ok) throw new Error(`API error ${res.status}`);
+  return res.json();
+}
+
 function RecorderPanel({
   lang,
   label,
@@ -132,10 +138,12 @@ function SessionInner() {
   const [index, setIndex] = useState(0);
   const [jumpVal, setJumpVal] = useState("");
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const firstLoadApplied = useRef(false);
 
   const loadPrompts = useCallback(async () => {
-    const data: Prompt[] = await fetch("/api/recording/prompts").then((r) => r.json());
+    const data = await fetchPrompts();
     setPrompts(data);
     return data;
   }, []);
@@ -143,11 +151,14 @@ function SessionInner() {
   // Keep same mounted page in sync when /session?id=... changes from sidebar links.
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/recording/prompts")
-      .then((r) => r.json())
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10_000);
+
+    fetchPrompts(controller.signal)
       .then((data: Prompt[]) => {
         if (cancelled) return;
         setPrompts(data);
+        setLoadError(null);
         setLoading(false);
         if (data.length === 0) {
           setIndex(0);
@@ -169,11 +180,18 @@ function SessionInner() {
         }
         setIndex((current) => Math.min(current, data.length - 1));
       })
-      .catch(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => { cancelled = true; };
-  }, [routeId]);
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        const message =
+          err instanceof Error && err.name === "AbortError"
+            ? "Koneksi ke server terlalu lama. Pastikan HP masih terhubung ke WiFi yang sama."
+            : "Daftar kalimat gagal dimuat dari server.";
+        setLoadError(message);
+        setLoading(false);
+      })
+      .finally(() => clearTimeout(timeout));
+    return () => { cancelled = true; controller.abort(); };
+  }, [routeId, loadAttempt]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -224,6 +242,35 @@ function SessionInner() {
     return (
       <div className="py-20 text-center text-gray-500 dark:text-gray-400">
         Memuat kalimat...
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 space-y-4 text-center">
+        <div className="space-y-2">
+          <p className="font-medium text-gray-800 dark:text-white/90">
+            Gagal memuat kalimat.
+          </p>
+          <p className="max-w-md text-sm text-gray-500 dark:text-gray-400">
+            {loadError}
+          </p>
+        </div>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Button
+            onClick={() => {
+              setLoading(true);
+              setLoadError(null);
+              setLoadAttempt((value) => value + 1);
+            }}
+          >
+            Coba Lagi
+          </Button>
+          <Button onClick={() => router.push("/")} variant="outline">
+            Kembali ke Beranda
+          </Button>
+        </div>
       </div>
     );
   }
