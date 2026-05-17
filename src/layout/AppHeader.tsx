@@ -1,7 +1,7 @@
 "use client";
 import { ThemeToggleButton } from "@/components/common/ThemeToggleButton";
 import { useSidebar } from "@/context/SidebarContext";
-import { IconMenu2, IconX } from "@tabler/icons-react";
+import { IconMenu2, IconX } from "@/components/icons";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs/promises";
-import { findDuplicatePromptIds, parseCSV, parseExcel, shufflePrompts } from "@/lib/recording/csv";
+import { findDuplicatePromptIds, parseCSV, shufflePrompts } from "@/lib/recording/csv";
+import { parseExcel } from "@/lib/recording/excel";
 import { outputRoot, promptsJsonPath } from "@/lib/recording/paths";
 import type { Prompt } from "@/lib/recording/csv";
 

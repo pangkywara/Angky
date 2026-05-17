@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import ComponentCard from "@/components/common/ComponentCard";
-import { IconDeviceMobile, IconCopy, IconCheck } from "@tabler/icons-react";
+import { IconDeviceMobile, IconCopy, IconCheck } from "@/components/icons";
 
 interface NetworkInfo {
   ip: string;

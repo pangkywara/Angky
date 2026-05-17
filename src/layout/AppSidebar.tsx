@@ -11,7 +11,7 @@ import {
   IconFolder,
   IconMicrophone,
   IconPlayerRecord,
-} from "@tabler/icons-react";
+} from "@/components/icons";
 
 interface DatasetEntry {
   id: string;

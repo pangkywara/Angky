@@ -5,7 +5,7 @@ import Link from "next/link";
 import ComponentCard from "@/components/common/ComponentCard";
 import Button from "@/components/ui/button/Button";
 import { useRecorder } from "@/hooks/useRecorder";
-import { IconChevronRight } from "@tabler/icons-react";
+import { IconChevronRight } from "@/components/icons";
 
 interface Prompt {
   id: string;
