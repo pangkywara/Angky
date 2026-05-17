@@ -38,7 +38,7 @@ Angky adalah aplikasi web lokal untuk merekam dataset suara berpasangan (Bahasa 
 
 ```bash
 # 1. Masuk ke folder frontend
-cd frontend
+cd Angky
 
 # 2. Install dependensi
 bun install / npm install / pnpm install
