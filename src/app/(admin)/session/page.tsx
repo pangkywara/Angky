@@ -189,10 +189,28 @@ function SessionInner() {
 
   function handleJump(e: React.KeyboardEvent) {
     if (e.key !== "Enter") return;
-    const id = jumpVal.trim();
-    const idx = prompts.findIndex((p) => p.id === id);
-    if (idx >= 0) setIndex(idx);
+    const raw = jumpVal.trim();
+    if (!raw) return;
     setJumpVal("");
+
+    // 1. Exact ID match (e.g. "003")
+    let idx = prompts.findIndex((p) => p.id === raw);
+    if (idx >= 0) { setIndex(idx); return; }
+
+    // 2. Numeric match — pad to match ID format (e.g. "3" → "003")
+    const num = parseInt(raw, 10);
+    if (!isNaN(num) && num > 0) {
+      const padWidth = prompts[0]?.id.length ?? 1;
+      const padded = String(num).padStart(padWidth, "0");
+      idx = prompts.findIndex((p) => p.id === padded);
+      if (idx >= 0) { setIndex(idx); return; }
+
+      // 3. Fallback — treat as 1-based row position
+      const rowIdx = num - 1;
+      if (rowIdx >= 0 && rowIdx < prompts.length) {
+        setIndex(rowIdx);
+      }
+    }
   }
 
   const handleSaved = useCallback(async () => {
@@ -274,8 +292,8 @@ function SessionInner() {
           value={jumpVal}
           onChange={(e) => setJumpVal(e.target.value)}
           onKeyDown={handleJump}
-          placeholder="Lompat ke ID..."
-          className="w-full sm:w-48 h-10 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500"
+          placeholder="Nomor kalimat (misal: 5)..."
+          className="w-full sm:w-80 h-10 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500"
         />
       </div>
 
