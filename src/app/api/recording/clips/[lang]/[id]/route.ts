@@ -4,6 +4,7 @@ import { validateLang, validateId, wavDirsForRead, wavPathCandidates, metadataPa
 import { normalizePrompts } from "@/lib/recording/csv";
 import type { Lang } from "@/lib/recording/paths";
 import path from "path";
+import { parseByteRange } from "@/lib/recording/httpRange";
 
 async function rebuildMetadata(lang: Lang): Promise<void> {
   const [raw, filesByDir] = await Promise.all([
@@ -26,22 +27,78 @@ async function rebuildMetadata(lang: Lang): Promise<void> {
 
 type Params = { params: Promise<{ lang: string; id: string }> };
 
-export async function GET(_req: NextRequest, { params }: Params) {
+const AUDIO_HEADERS = {
+  "Accept-Ranges": "bytes",
+  "Cache-Control": "no-store",
+  "Content-Encoding": "identity",
+  "Content-Type": "audio/wav",
+};
+
+async function readClip(langRaw: string, id: string): Promise<Buffer> {
+  const lang = validateLang(langRaw);
+  validateId(id);
+  let data: Buffer | null = null;
+  for (const candidate of wavPathCandidates(lang, id)) {
+    data = await fs.readFile(candidate).catch(() => null);
+    if (data) break;
+  }
+  if (!data) throw new Error("Not found");
+  return data;
+}
+
+export async function GET(req: NextRequest, { params }: Params) {
   const { lang: langRaw, id } = await params;
   try {
-    const lang = validateLang(langRaw);
-    validateId(id);
-    let data: Buffer | null = null;
-    for (const candidate of wavPathCandidates(lang, id)) {
-      data = await fs.readFile(candidate).catch(() => null);
-      if (data) break;
+    const data = await readClip(langRaw, id);
+    const rangeHeader = req.headers.get("range");
+
+    if (rangeHeader) {
+      const range = parseByteRange(rangeHeader, data.length);
+      if ("invalid" in range) {
+        return new NextResponse(null, {
+          status: 416,
+          headers: {
+            ...AUDIO_HEADERS,
+            "Content-Length": "0",
+            "Content-Range": `bytes */${data.length}`,
+          },
+        });
+      }
+
+      const chunk = data.subarray(range.start, range.end + 1);
+      return new NextResponse(new Uint8Array(chunk), {
+        status: 206,
+        headers: {
+          ...AUDIO_HEADERS,
+          "Content-Length": String(chunk.length),
+          "Content-Range": `bytes ${range.start}-${range.end}/${data.length}`,
+        },
+      });
     }
-    if (!data) throw new Error("Not found");
+
     return new NextResponse(new Uint8Array(data), {
-      headers: { "Content-Type": "audio/wav" },
+      headers: {
+        ...AUDIO_HEADERS,
+        "Content-Length": String(data.length),
+      },
     });
   } catch {
     return NextResponse.json({ error: "Tidak ditemukan" }, { status: 404 });
+  }
+}
+
+export async function HEAD(_req: NextRequest, { params }: Params) {
+  const { lang: langRaw, id } = await params;
+  try {
+    const data = await readClip(langRaw, id);
+    return new NextResponse(null, {
+      headers: {
+        ...AUDIO_HEADERS,
+        "Content-Length": String(data.length),
+      },
+    });
+  } catch {
+    return new NextResponse(null, { status: 404 });
   }
 }
 
