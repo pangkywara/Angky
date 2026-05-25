@@ -1,5 +1,5 @@
 "use client";
-import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import ComponentCard from "@/components/common/ComponentCard";
@@ -40,12 +40,21 @@ function RecorderPanel({
 }) {
   const { state, blob, durationSec, start, stop, error } = useRecorder();
   const [savedAt, setSavedAt] = useState<number | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [playbackError, setPlaybackError] = useState<string | null>(null);
+  const localAudioUrl = useMemo(() => (blob ? URL.createObjectURL(blob) : null), [blob]);
 
   // Auto-save when blob ready
   const onSavedRef = useRef(onSaved);
   useEffect(() => {
     onSavedRef.current = onSaved;
   }, [onSaved]);
+
+  useEffect(() => {
+    return () => {
+      if (localAudioUrl) URL.revokeObjectURL(localAudioUrl);
+    };
+  }, [localAudioUrl]);
 
   useEffect(() => {
     if (state !== "ready" || !blob) return;
@@ -63,15 +72,22 @@ function RecorderPanel({
           onSavedRef.current();
         }
       })
-      .catch(() => { });
+      .catch(() => {
+        if (!cancelled) setSaveError("Rekaman gagal disimpan");
+      });
     return () => { cancelled = true; };
   }, [state, blob, lang, promptId, text]);
 
   const showSavedBadge = (alreadySaved && state === "idle") || savedAt !== null;
-  const saving = state === "ready" && savedAt === null;
+  const saving = state === "ready" && savedAt === null && saveError === null;
   const savedUrl = `/api/recording/clips/${lang}/${promptId}`;
+  const audioSrc = savedAt !== null
+    ? `${savedUrl}?v=${savedAt}`
+    : localAudioUrl ?? (showSavedBadge ? savedUrl : null);
   const handleStart = () => {
     setSavedAt(null);
+    setSaveError(null);
+    setPlaybackError(null);
     void start();
   };
 
@@ -97,9 +113,17 @@ function RecorderPanel({
 
       <p className="text-sm text-gray-600 dark:text-gray-400 min-h-[2rem]">{text}</p>
 
-      {/* Playback: previously saved (when idle) */}
-      {showSavedBadge && (
-        <audio src={savedUrl} controls className="w-full h-8" />
+      {/* Playback: local preview first, saved clip after upload */}
+      {audioSrc && (
+        <audio
+          key={audioSrc}
+          src={audioSrc}
+          controls
+          preload="metadata"
+          className="w-full h-8"
+          onCanPlay={() => setPlaybackError(null)}
+          onError={() => setPlaybackError("Pratinjau audio gagal dimuat")}
+        />
       )}
 
       <div className="flex flex-wrap gap-2">
@@ -124,7 +148,9 @@ function RecorderPanel({
         )}
       </div>
 
-      {error && <p className="text-xs text-red-500">{error}</p>}
+      {(error || saveError || playbackError) && (
+        <p className="text-xs text-red-500">{error ?? saveError ?? playbackError}</p>
+      )}
     </div>
   );
 }
