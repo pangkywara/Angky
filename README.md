@@ -349,3 +349,4 @@ keytool error: java.io.FileNotFoundException: ...\Android Studio\jbr\lib\securit
 ## 📄 Lisensi
 
 Lihat file [LICENSE](./LICENSE) untuk detail lisensi.
+
